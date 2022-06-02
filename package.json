@@ -1,0 +1,14 @@
+{
+  "name": "quiver",
+  "version": "1.0.0",
+  "description": "Custom Twitch Chat IRC client",
+  "main": "main.js",
+  "author": "flyingmat",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^19.0.1"
+  },
+  "scripts": {
+    "start": "electron ."
+  }
+}
