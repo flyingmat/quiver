@@ -322,6 +322,7 @@ class SplitView extends HTMLElement {
         this.resizerStartWidths = null
         this.resizerLeft = null
         this.resizerRight = null
+        this.resizerCorrection = 0
     }
 
     appendContainer(container) {
@@ -395,6 +396,8 @@ class SplitView extends HTMLElement {
         document.addEventListener('mousemove', this.resizerMouseMoveFn = e => this.resizerMouseMove(e))
         document.addEventListener('mouseup', e => this.resizerMouseUp(e))
         document.body.style.cursor = 'e-resize';
+
+        this.resizerCorrection = 0
     }
 
     resizerMouseUp(e) {
@@ -407,24 +410,10 @@ class SplitView extends HTMLElement {
 
         if (this.resizerLeft == this.activeResizer.previousElementSibling) {
             leftWidth = this.resizerStartWidths.get(this.resizerLeft) + e.clientX - this.resizerStartX
-            let rightCorrection = 0
-            let ci = this.activeResizer.previousElementSibling
-            while (ci != this.resizerRight) {
-                rightCorrection += this.resizerStartWidths.get(ci) - 200
-                ci = ci.nextElementSibling.nextElementSibling
-            }
-            rightCorrection += 200
-            rightWidth = this.resizerStartWidths.get(this.resizerRight) - (leftWidth - rightCorrection)
+            rightWidth = this.resizerStartWidths.get(this.resizerRight) - (leftWidth - this.resizerStartWidths.get(this.resizerLeft) - this.resizerCorrection)
         } else {
             rightWidth = this.resizerStartWidths.get(this.resizerRight) - (e.clientX - this.resizerStartX)
-            let leftCorrection = 0
-            let ci = this.activeResizer.nextElementSibling
-            while (ci != this.resizerLeft) {
-                leftCorrection += this.resizerStartWidths.get(ci) - 200
-                ci = ci.previousElementSibling.previousElementSibling
-            }
-            leftCorrection += 200
-            leftWidth = this.resizerStartWidths.get(this.resizerLeft) - (rightWidth - leftCorrection)
+            leftWidth = this.resizerStartWidths.get(this.resizerLeft) - (rightWidth - this.resizerStartWidths.get(this.resizerRight) - this.resizerCorrection)
         }
 
         console.log(`left ${leftWidth}, right ${rightWidth}`)
@@ -441,11 +430,13 @@ class SplitView extends HTMLElement {
             if (leftWidth < 200) {
                 this.resizerLeft.style.width = '200px'
                 if (this.resizerLeft.previousElementSibling != null) {
+                    this.resizerCorrection += this.resizerStartWidths.get(this.resizerLeft) - 200
                     this.resizerLeft = this.resizerLeft.previousElementSibling.previousElementSibling
                 }
             } else if (this.resizerLeft != this.activeResizer.previousElementSibling && leftWidth > this.resizerStartWidths.get(this.resizerLeft)) {
                 this.resizerLeft.style.width = `${this.resizerStartWidths.get(this.resizerLeft)}px`
                 this.resizerLeft = this.resizerLeft.nextElementSibling.nextElementSibling
+                this.resizerCorrection -= this.resizerStartWidths.get(this.resizerLeft) - 200
             } else {
                 this.resizerLeft.style.width = `${leftWidth}px`
             }
@@ -455,11 +446,13 @@ class SplitView extends HTMLElement {
             if (rightWidth < 200) {
                 this.resizerRight.style.width = '200px'
                 if (this.resizerRight.nextElementSibling != null) {
+                    this.resizerCorrection += this.resizerStartWidths.get(this.resizerRight) - 200
                     this.resizerRight = this.resizerRight.nextElementSibling.nextElementSibling
                 }
             } else if (this.resizerRight != this.activeResizer.nextElementSibling && rightWidth > this.resizerStartWidths.get(this.resizerRight)) {
                 this.resizerRight.style.width = `${this.resizerStartWidths.get(this.resizerRight)}px`
                 this.resizerRight = this.resizerRight.previousElementSibling.previousElementSibling
+                this.resizerCorrection -= this.resizerStartWidths.get(this.resizerRight) - 200
             } else {
                 this.resizerRight.style.width = `${rightWidth}px`
             }
