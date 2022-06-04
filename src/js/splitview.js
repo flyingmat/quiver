@@ -325,50 +325,54 @@ class SplitView extends HTMLElement {
         this.resizerCorrection = 0
     }
 
-    appendContainer(container) {
+    _updateContainerWidths() {
+        let containers = [...this.children].filter(e => e instanceof Container)
+        let widths = containers.map(c => c.getBoundingClientRect().width)
+        for (let i = 0; i < containers.length; i++) {
+            containers[i].style.width = `${widths[i]}px`
+        }
+    }
+
+    _appendContainer(container) {
         if (this.containers > 0) {
             this.appendChild(Resizer.new())
         }
         this.appendChild(container)
         this.containers++
-
-        let cs = []
-        for (const c of [...this.children].filter(e => e instanceof Container)) {
-            cs.push(`${c.getBoundingClientRect().width}px`)
-        }
-        cs.reverse()
-        for (const c of [...this.children].filter(e => e instanceof Container)) {
-            c.style.width = cs.pop(`${c.getBoundingClientRect().width}px`)
-        }
     }
 
     insertContainer(container, where = null) {
         if (where == null) {
-            this.appendContainer(container)
+            this._appendContainer(container)
         } else if ('next' in where) {
-            container.style.width = `${where.next.getBoundingClientRect().width / 2 - 1}px`
-            where.next.style.width = `${where.next.getBoundingClientRect().width / 2 - 1}px`
+            let newWidth = Math.max(200, where.next.getBoundingClientRect().width / 2 - 1)
+            
+            container.style.width = `${newWidth}px`
+            where.next.style.width = `${newWidth}px`
+            
             this.insertBefore(container, where.next)
             this.insertBefore(Resizer.new(), where.next)
+
+            if (newWidth == 200) {
+                this._updateContainerWidths()
+            }
         } else if ('previous' in where) {
-            container.style.width = `${where.previous.getBoundingClientRect().width / 2 - 1}px`
-            where.previous.style.width = `${where.previous.getBoundingClientRect().width / 2 - 1}px`
+            let newWidth = Math.max(200, where.previous.getBoundingClientRect().width / 2 - 1)
+
+            container.style.width = `${newWidth}px`
+            where.previous.style.width = `${newWidth}px`
+            
             if (where.previous.nextElementSibling != null) {
                 let next = where.previous.nextElementSibling.nextElementSibling
                 this.insertBefore(container, next)
                 this.insertBefore(Resizer.new(), next)
             } else {
-                this.appendContainer(container)
+                this._appendContainer(container)
             }
-        }
-        
-        let cs = []
-        for (const c of [...this.children].filter(e => e instanceof Container)) {
-            cs.push(`${c.getBoundingClientRect().width}px`)
-        }
-        cs.reverse()
-        for (const c of [...this.children].filter(e => e instanceof Container)) {
-            c.style.width = cs.pop(`${c.getBoundingClientRect().width}px`)
+
+            if (newWidth == 200) {
+                this._updateContainerWidths()
+            }
         }
     }
 
@@ -378,6 +382,7 @@ class SplitView extends HTMLElement {
             resizer.remove()
         }
         container.remove()
+        this.containers--
     }
 
     dragTab(e, tab) {
@@ -387,6 +392,7 @@ class SplitView extends HTMLElement {
     resizerMouseDown(e, resizer) {
         this.activeResizer = resizer
         this.resizerStartX = e.clientX
+        this.resizerCorrection = 0
         this.resizerStartWidths = new Map()
         for (const c of [...this.children].filter(e => e instanceof Container)) {
             this.resizerStartWidths.set(c, c.getBoundingClientRect().width)
@@ -396,13 +402,11 @@ class SplitView extends HTMLElement {
         document.addEventListener('mousemove', this.resizerMouseMoveFn = e => this.resizerMouseMove(e))
         document.addEventListener('mouseup', e => this.resizerMouseUp(e))
         document.body.style.cursor = 'e-resize';
-
-        this.resizerCorrection = 0
     }
 
     resizerMouseUp(e) {
         document.removeEventListener('mousemove', this.resizerMouseMoveFn)
-        document.body.style.cursor = ''
+        document.body.style.removeProperty('cursor')
     }
 
     resizerMouseMove(e) {
@@ -415,8 +419,6 @@ class SplitView extends HTMLElement {
             rightWidth = this.resizerStartWidths.get(this.resizerRight) - (e.clientX - this.resizerStartX)
             leftWidth = this.resizerStartWidths.get(this.resizerLeft) - (rightWidth - this.resizerStartWidths.get(this.resizerRight) - this.resizerCorrection)
         }
-
-        console.log(`left ${leftWidth}, right ${rightWidth}`)
 
         let setLeft = true, setRight = true
 
