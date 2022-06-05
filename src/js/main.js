@@ -1,4 +1,9 @@
-let sw = document.createElement('split-view')
+import { Tab } from "./SplitView/Tab.js"
+import { Container } from "./SplitView/Container.js"
+import { SplitView } from "./SplitView/SplitView.js"
+import { Chat } from "./Chat/Chat.js"
+
+let sw = SplitView.new()
 document.body.appendChild(sw)
 
 let c = Container.new()
