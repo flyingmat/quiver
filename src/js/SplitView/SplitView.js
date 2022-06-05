@@ -12,7 +12,6 @@ export class SplitView extends HTMLElement {
     constructor() {
         super()
 
-        this.containers = 0
         this.dragActiveTab = null
         this.activeResizer = null
 
@@ -24,19 +23,13 @@ export class SplitView extends HTMLElement {
     }
 
     _updateContainerWidths() {
-        // let containers = [...this.children].filter(e => e instanceof Container)
-        // let widths = containers.map(c => c.getBoundingClientRect().width)
-        // for (let i = 0; i < containers.length; i++) {
-        //     containers[i].style.width = `${widths[i]}px`
-        // }
-
         for (const [c, w] of [...this.children].filter(e => e instanceof Container).map(e => [e, e.getBoundingClientRect().width])) {
             c.style.width = `${w}px`
         }
     }
 
     _appendContainer(container) {
-        if (this.containers > 0) {
+        if (this.children.length > 0) {
             this.appendChild(Resizer.new())
         }
         this.appendChild(container)
@@ -77,8 +70,6 @@ export class SplitView extends HTMLElement {
         } else {
             this._appendContainer(container)
         }
-
-        this.containers++
     }
 
     moveContainer(container, where) {
@@ -104,7 +95,6 @@ export class SplitView extends HTMLElement {
             resizer.remove()
         }
         container.remove()
-        this.containers--
     }
 
     dragTab(e, tab) {
@@ -155,7 +145,6 @@ export class SplitView extends HTMLElement {
     resizerMouseUp(e) {
         document.removeEventListener('mousemove', this.resizerMouseMoveFn)
         document.body.style.removeProperty('cursor')
-        // this._updateContainerWidths()
     }
 
     resizerMouseMove(e) {
