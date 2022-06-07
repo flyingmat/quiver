@@ -36,6 +36,7 @@ export class ChatBar extends HTMLElement {
 
     onDragEnter(e) {
         this.droppable = true
+        this.classList.add('opacity-animated')
     }
 
     onDragLeave(e) {
@@ -48,6 +49,7 @@ export class ChatBar extends HTMLElement {
 
     onDrop(e) {
         e.preventDefault()
+        this.classList.remove('opacity-animated')
         this.droppable = false
         this.container.dropTab()
     }

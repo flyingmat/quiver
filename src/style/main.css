@@ -167,11 +167,14 @@ split-chat-bar {
     flex-shrink: 1;
 
     background-color: transparent;
-    transition: background-color 0.15s ease-out;
 }
 
 split-chat-bar.droppable > .split-chat-bar-empty {
     background-color: #303030;
+}
+
+split-chat-bar.opacity-animated > .split-chat-bar-empty {
+    transition: background-color 0.15s ease-out;
 }
 
 split-chat-tab {
