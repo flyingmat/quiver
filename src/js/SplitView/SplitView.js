@@ -104,16 +104,20 @@ export class SplitView extends HTMLElement {
     dropTab(destContainer) {
         let srcContainer = this.dragActiveTab.container
 
-        let destWidth = destContainer.getBoundingClientRect().width
-        let srcWidth = srcContainer.getBoundingClientRect().width
-
-        srcContainer.removeTab(this.dragActiveTab)
-
-        if (srcContainer.splitView == null) {
-            destContainer.style.width = `${destWidth + srcWidth + 2}px`
+        if (srcContainer == destContainer) {
+            srcContainer.appendTab(this.dragActiveTab)
+        } else {
+            let destWidth = destContainer.getBoundingClientRect().width
+            let srcWidth = srcContainer.getBoundingClientRect().width
+    
+            srcContainer.removeTab(this.dragActiveTab)
+    
+            if (srcContainer.splitView == null) {
+                destContainer.style.width = `${destWidth + srcWidth + 2}px`
+            }
+    
+            destContainer.appendTab(this.dragActiveTab)
         }
-
-        destContainer.appendTab(this.dragActiveTab)
     }
 
     splitContainer(where) {

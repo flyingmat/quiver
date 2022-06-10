@@ -40,7 +40,6 @@ export class Container extends HTMLElement {
         this.splitOverlay = null
 
         this.activeTab = null
-        this.tabs = 0
     }
 
     connectedCallback() {
@@ -54,13 +53,11 @@ export class Container extends HTMLElement {
     appendTab(tab) {
         this.chatBar.appendTab(tab)
         this.activateTab(null, tab)
-        this.tabs++
     }
 
     removeTab(tab) {
         let newActiveTab = [this.activeTab.previousElementSibling, this.activeTab.nextElementSibling].find(t => t != null && t != this.chatBar.dropArea)
         this.chatBar.removeTab(tab)
-        this.tabs--
         if (newActiveTab !== undefined) {
             this.activateTab(null, newActiveTab)
         } else {
@@ -143,18 +140,16 @@ export class Container extends HTMLElement {
         let offset = e.clientX - this.getBoundingClientRect().x
 
         if (offset < w / 3) {
-            // let newContainer = Container.new()
-            // this.splitView.insertContainer(newContainer, {'next': this})
-            // newContainer.dropTab(this.splitView.dragActiveTab)
             this.splitView.splitContainer({'next': this})
         } else if (offset > 2 * w / 3) {
-            // let newContainer = Container.new()
-            // this.splitView.insertContainer(newContainer, {'previous': this})
-            // newContainer.dropTab(this.splitView.dragActiveTab)
             this.splitView.splitContainer({'previous': this})
         } else {
             console.log('full')
         }
+    }
+
+    get tabs() {
+        return this.chatBar.children.length - 1
     }
 
 }
