@@ -1,16 +1,22 @@
 import { Container } from "./Container.js"
 import { Resizer } from "./Resizer.js"
+import { NewTabDialog } from "./NewTabDialog.js"
 
 export class SplitView extends HTMLElement {
 
     static elementTag = 'split-view'
 
-    static new() {
-        return document.createElement(SplitView.elementTag)
+    static new(chatManager) {
+        let splitView = document.createElement(SplitView.elementTag)
+        splitView.chatManager = chatManager
+
+        return splitView
     }
 
     constructor() {
         super()
+
+        this.chatManager = null
 
         this.dragActiveTab = null
         this.activeResizer = null
@@ -33,6 +39,10 @@ export class SplitView extends HTMLElement {
             this.appendChild(Resizer.new())
         }
         this.appendChild(container)
+    }
+
+    createChat(config) {
+        return this.chatManager.createChat(config)
     }
 
     insertContainer(container, where = null) {

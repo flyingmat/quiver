@@ -3,23 +3,48 @@ import { Container } from "./SplitView/Container.js"
 import { SplitView } from "./SplitView/SplitView.js"
 import { Chat } from "./Chat/Chat.js"
 
-let sw = SplitView.new()
-document.body.appendChild(sw)
+import { Twitch } from "./API/Twitch.js"
+import { ChatManager } from "./Chat/ChatManager.js"
+import { parseMessage } from "./Chat/MessageParsing.js"
 
-let c = Container.new()
-sw.insertContainer(c)
 
-let t1 = Tab.new('tmi', Chat.new('tmi CHAT'))
-let t2 = Tab.new('#test', Chat.new('#test CHAT'))
+let tmi = Chat.new('tmi')
+let tmiTab = Tab.new('tmi', tmi)
 
-c.appendTab(t1)
-c.appendTab(t2)
+let chatManager = new ChatManager()
+chatManager.init(tmi)
 
-c = Container.new()
-sw.insertContainer(c)
 
-let t3 = Tab.new('#testc3', Chat.new('#testc3 CHAT'))
-let t4 = Tab.new('#testc4', Chat.new('#testc4 CHAT'))
+let splitView = SplitView.new(chatManager)
+document.body.appendChild(splitView)
 
-c.appendTab(t3)
-c.appendTab(t4)
+let container = Container.new()
+splitView.insertContainer(container)
+container.appendTab(tmiTab)
+
+
+window.electronAPI.handleReceived((e, message) => {
+    chatManager.distributeMessage(parseMessage(message))
+})
+
+window.electronAPI.handleSent((e, message) => {
+    console.log(`SENT ${message}`)
+})
+
+window.electronAPI.requestConfig().then(config => {
+    if (!('token' in config) || (config.token == null)) {
+        window.electronAPI.ircConnect()
+    } else {
+        let twitchAPI = new Twitch(config['client-id'], config.token)
+        twitchAPI.getUsers().then(r => r.json()).then(self => {
+            window.electronAPI.ircConnect({
+                'user': self.data[0].login,
+                'token': config.token
+            })
+        })
+    }
+})
+
+// for (let i = 1; i < 20; i++) {
+//     messageProcessor.processMessage('aA'.repeat(20))
+// }

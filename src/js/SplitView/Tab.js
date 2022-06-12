@@ -27,10 +27,12 @@ export class Tab extends HTMLElement {
     
     connectedCallback() {
         this.container = this.parentElement.parentElement
+        this.chat.container = this.container
     }
 
     disconnectedCallback() {
         this.container = null
+        this.chat.container = null
     }
 
     attributeChangedCallback(attrName, oldVal, newVal) {

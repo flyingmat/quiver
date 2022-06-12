@@ -7,13 +7,17 @@ export class ChatBar extends HTMLElement {
     static new() {
         let chatBar = document.createElement(ChatBar.elementTag)
         let dropArea = htmlToElement('<div class="split-chat-bar-empty"></div>')
+        let add = htmlToElement('<div class="split-chat-bar-add"><img src="../assets/add.svg" width="14" height="14"></div>')
         
         dropArea.addEventListener('dragenter', e => chatBar.onDragEnter(e))
         dropArea.addEventListener('dragleave', e => chatBar.onDragLeave(e))
         dropArea.addEventListener('dragover', e => chatBar.onDragOver(e))
         dropArea.addEventListener('drop', e => chatBar.onDrop(e))
 
+        add.addEventListener('click', e => chatBar.onClickAdd(e))
+
         chatBar.appendChild(dropArea)
+        chatBar.appendChild(add)
         chatBar.dropArea = dropArea
 
         return chatBar
@@ -52,6 +56,10 @@ export class ChatBar extends HTMLElement {
         this.classList.remove('opacity-animated')
         this.droppable = false
         this.container.dropTab()
+    }
+
+    onClickAdd(e) {
+        this.container.initAddTab()
     }
 
     get droppable() {

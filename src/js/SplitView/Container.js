@@ -1,5 +1,7 @@
 import { ChatBar } from "./ChatBar.js"
 import { htmlToElement } from "../common.js"
+import { Tab } from "./Tab.js"
+import { NewTabDialog } from "./NewTabDialog.js"
 
 export class Container extends HTMLElement {
 
@@ -88,11 +90,28 @@ export class Container extends HTMLElement {
         this.splitView.dropTab(this)
     }
 
+    initAddTab() {
+        this.appendTab(Tab.new('New Chat', NewTabDialog.new()))
+    }
+
+    finishAddTab(config) {
+        let dialogTab = this.activeTab
+        let newChat = this.splitView.createChat(config)
+
+        dialogTab.chat.remove()
+        dialogTab.title = newChat.channel
+        dialogTab.chat = newChat
+        this.activateTab(null, dialogTab)
+    }
+
     onDragOver(e) {
         if (this.tabs == 1 && this.splitView.dragActiveTab.container == this) {
             return
         }
         e.preventDefault()
+
+        this.splitOverlay.classList.add('droppable')
+        this.splitOverlay.classList.add('opacity-animated')
 
         let w = this.getBoundingClientRect().width
         let offset = e.clientX - this.getBoundingClientRect().x
@@ -113,17 +132,19 @@ export class Container extends HTMLElement {
         if (this.tabs == 1 && this.splitView.dragActiveTab.container == this) {
             return
         }
-        this.splitOverlay.classList.add('droppable')
-        this.splitOverlay.classList.add('opacity-animated')
+        
         setTimeout(() => this.splitOverlay.classList.add('animated'), 10)
+        setTimeout(() => this.chatContainer.firstChild.nextElementSibling.classList.add('inactive'), 10)
     }
 
     onDragLeave(e) {
         if (this.tabs == 1 && this.splitView.dragActiveTab.container == this) {
             return
         }
+
         this.splitOverlay.classList.remove('droppable')
         this.splitOverlay.classList.remove('animated')
+        this.chatContainer.firstChild.nextElementSibling.classList.remove('inactive')
     }
 
     onDrop(e) {
@@ -135,6 +156,7 @@ export class Container extends HTMLElement {
         this.splitOverlay.classList.remove('droppable')
         this.splitOverlay.classList.remove('opacity-animated')
         this.splitOverlay.classList.remove('animated')
+        this.chatContainer.firstChild.nextElementSibling.classList.remove('inactive')
 
         let w = this.getBoundingClientRect().width
         let offset = e.clientX - this.getBoundingClientRect().x
@@ -149,7 +171,7 @@ export class Container extends HTMLElement {
     }
 
     get tabs() {
-        return this.chatBar.children.length - 1
+        return this.chatBar.children.length - 2
     }
 
 }
