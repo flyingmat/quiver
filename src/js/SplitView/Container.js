@@ -25,10 +25,10 @@ export class Container extends HTMLElement {
         container.chatContainer = chatContainer
         container.splitOverlay = splitOverlay
 
-        chatContainer.addEventListener('dragover', e => container.onDragOver(e))
-        chatContainer.addEventListener('dragenter', e => container.onDragEnter(e))
-        chatContainer.addEventListener('dragleave', e => container.onDragLeave(e))
-        chatContainer.addEventListener('drop', e => container.onDrop(e))
+        splitOverlay.addEventListener('dragover', e => container.onDragOver(e))
+        splitOverlay.addEventListener('dragenter', e => container.onDragEnter(e))
+        splitOverlay.addEventListener('dragleave', e => container.onDragLeave(e))
+        splitOverlay.addEventListener('drop', e => container.onDrop(e))
 
         return container
     }
@@ -42,10 +42,15 @@ export class Container extends HTMLElement {
         this.splitOverlay = null
 
         this.activeTab = null
+
+        this.dragOverTick = false
+        this.dragRect = null
+        this.overlayPos = ''
     }
 
     connectedCallback() {
         this.splitView = this.parentElement
+        this.dragRect = this.getBoundingClientRect()
     }
 
     disconnectedCallback() {
@@ -84,6 +89,15 @@ export class Container extends HTMLElement {
 
     dragTab(e, tab) {
         this.splitView.dragTab(e, tab)
+        for (const container of [...this.splitView.children].filter(e => e instanceof Container)) {
+            container.splitOverlay.classList.add('active')
+        }
+    }
+
+    dragEndTab(e, tab) {
+        for (const container of [...this.splitView.children].filter(e => e instanceof Container)) {
+            container.splitOverlay.classList.remove('active')
+        }
     }
 
     dropTab() {
@@ -108,23 +122,26 @@ export class Container extends HTMLElement {
         if (this.tabs == 1 && this.splitView.dragActiveTab.container == this) {
             return
         }
+
         e.preventDefault()
+        
+        if (!this.dragOverTick) {
+            this.dragOverTick = true
 
-        this.splitOverlay.classList.add('droppable')
-        this.splitOverlay.classList.add('opacity-animated')
+            requestAnimationFrame(() => {
+                let w = this.dragRect.width
+                let offset = e.clientX - this.dragRect.x
+        
+                if (offset < w / 3) {
+                    this.overlayPosition = 'left'
+                } else if (offset > 2 * w / 3) {
+                    this.overlayPosition = 'right'
+                } else {
+                    this.overlayPosition = ''
+                }
 
-        let w = this.getBoundingClientRect().width
-        let offset = e.clientX - this.getBoundingClientRect().x
-
-        if (offset < w / 3) {
-            this.splitOverlay.classList.remove('right')
-            this.splitOverlay.classList.add('left')
-        } else if (offset > 2 * w / 3) {
-            this.splitOverlay.classList.remove('left')
-            this.splitOverlay.classList.add('right')
-        } else {
-            this.splitOverlay.classList.remove('right')
-            this.splitOverlay.classList.remove('left')
+                this.dragOverTick = false
+            })
         }
     }
 
@@ -132,9 +149,16 @@ export class Container extends HTMLElement {
         if (this.tabs == 1 && this.splitView.dragActiveTab.container == this) {
             return
         }
+
+        this.dragRect = this.getBoundingClientRect()
         
-        setTimeout(() => this.splitOverlay.classList.add('animated'), 10)
-        setTimeout(() => this.chatContainer.firstChild.nextElementSibling.classList.add('inactive'), 10)
+        this.splitOverlay.classList.add('droppable')
+        this.splitOverlay.classList.add('opacity-animated')
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                this.splitOverlay.classList.add('animated')
+            })
+        })
     }
 
     onDragLeave(e) {
@@ -144,7 +168,7 @@ export class Container extends HTMLElement {
 
         this.splitOverlay.classList.remove('droppable')
         this.splitOverlay.classList.remove('animated')
-        this.chatContainer.firstChild.nextElementSibling.classList.remove('inactive')
+        // this.chatContainer.firstChild.nextElementSibling.classList.remove('inactive')
     }
 
     onDrop(e) {
@@ -156,7 +180,7 @@ export class Container extends HTMLElement {
         this.splitOverlay.classList.remove('droppable')
         this.splitOverlay.classList.remove('opacity-animated')
         this.splitOverlay.classList.remove('animated')
-        this.chatContainer.firstChild.nextElementSibling.classList.remove('inactive')
+        // this.chatContainer.firstChild.nextElementSibling.classList.remove('inactive')
 
         let w = this.getBoundingClientRect().width
         let offset = e.clientX - this.getBoundingClientRect().x
@@ -172,6 +196,33 @@ export class Container extends HTMLElement {
 
     get tabs() {
         return this.chatBar.children.length - 2
+    }
+
+    get splitWidth() {
+        // return this.style.getPropertyValue('--split-width')
+        return this.style.width
+    }
+
+    set splitWidth(value) {
+        this.style.width = value
+        // this.style.setProperty('--split-width', value)
+        // this.dispatchEvent(new CustomEvent('split-width', {detail: value}))
+    }
+
+    get overlayPosition() {
+        return this.overlayPos
+    }
+
+    set overlayPosition(value) {
+        if (this.overlayPos != value) {
+            if (this.overlayPos != '') {
+                this.splitOverlay.classList.remove(this.overlayPos)
+            }
+            if (value != '') {
+                this.splitOverlay.classList.add(value)
+            }
+            this.overlayPos = value
+        }
     }
 
 }

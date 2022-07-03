@@ -4,12 +4,13 @@
         <meta charset="UTF-8">
         <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
         <meta http-equiv="Content-Security-Policy" content="
-            default-src 'self' https://api.twitch.tv;
+            default-src 'self' https://api.twitch.tv https://api.betterttv.net https://api.frankerfacez.com https://api.7tv.app https://api.github.com https://static-cdn.jtvnw.net https://cdn.betterttv.net https://cdn.frankerfacez.com https://cdn.7tv.app https://twemoji.maxcdn.com;
             script-src 'self';
             font-src 'self' https://fonts.gstatic.com;
             style-src 'self' https://fonts.googleapis.com;
             ">
         <link href="style/main.css" rel="stylesheet">
+        <script src="../deps/tinycolor.js"></script>
         <script type="module" src="js/SplitView/_ce.js"></script>
         <script type="module" src="js/Chat/_ce.js"></script>
         <title>quiver</title>

@@ -23,6 +23,7 @@ export class Tab extends HTMLElement {
 
         this.addEventListener('mousedown', e => this.container.activateTab(e, this))
         this.addEventListener('dragstart', e => this.container.dragTab(e, this))
+        this.addEventListener('dragend', e => this.container.dragEndTab(e, this))
     }
     
     connectedCallback() {

@@ -26,11 +26,13 @@ export class SplitView extends HTMLElement {
         this.resizerLeft = null
         this.resizerRight = null
         this.resizerCorrection = 0
+
+        this.resizing = false
     }
 
     _updateContainerWidths() {
         for (const [c, w] of [...this.children].filter(e => e instanceof Container).map(e => [e, e.getBoundingClientRect().width])) {
-            c.style.width = `${w}px`
+            c.splitWidth = `${w}px`
         }
     }
 
@@ -51,8 +53,8 @@ export class SplitView extends HTMLElement {
         } else if ('next' in where) {
             let newWidth = Math.max(200, where.next.getBoundingClientRect().width / 2 - 1)
             
-            container.style.width = `${newWidth}px`
-            where.next.style.width = `${newWidth}px`
+            container.splitWidth = `${newWidth}px`
+            where.next.splitWidth = `${newWidth}px`
             
             this.insertBefore(container, where.next)
             this.insertBefore(Resizer.new(), where.next)
@@ -63,8 +65,8 @@ export class SplitView extends HTMLElement {
         } else if ('previous' in where) {
             let newWidth = Math.max(200, where.previous.getBoundingClientRect().width / 2 - 1)
 
-            container.style.width = `${newWidth}px`
-            where.previous.style.width = `${newWidth}px`
+            container.splitWidth = `${newWidth}px`
+            where.previous.splitWidth = `${newWidth}px`
             
             if (where.previous.nextElementSibling != null) {
                 let next = where.previous.nextElementSibling.nextElementSibling
@@ -123,7 +125,7 @@ export class SplitView extends HTMLElement {
             srcContainer.removeTab(this.dragActiveTab)
     
             if (srcContainer.splitView == null) {
-                destContainer.style.width = `${destWidth + srcWidth + 2}px`
+                destContainer.splitWidth = `${destWidth + srcWidth + 2}px`
             }
     
             destContainer.appendTab(this.dragActiveTab)
@@ -148,6 +150,7 @@ export class SplitView extends HTMLElement {
         this.resizerStartWidths = new Map()
         for (const c of [...this.children].filter(e => e instanceof Container)) {
             this.resizerStartWidths.set(c, c.getBoundingClientRect().width)
+            // c.lastChild.style.width = `${c.getBoundingClientRect().width}px`
         }
         this.resizerLeft = resizer.previousElementSibling
         this.resizerRight = resizer.nextElementSibling
@@ -159,6 +162,10 @@ export class SplitView extends HTMLElement {
     resizerMouseUp(e) {
         document.removeEventListener('mousemove', this.resizerMouseMoveFn)
         document.body.style.removeProperty('cursor')
+        // for (const c of [...this.children].filter(e => e instanceof Container)) {
+        //     // this.resizerStartWidths.set(c, c.getBoundingClientRect().width)
+        //     c.lastChild.style.width = `${c.getBoundingClientRect().width}px`
+        // }
     }
 
     resizerMouseMove(e) {
@@ -182,33 +189,33 @@ export class SplitView extends HTMLElement {
 
         if (setLeft) {
             if (leftWidth < 200) {
-                this.resizerLeft.style.width = '200px'
+                this.resizerLeft.splitWidth = '200px'
                 if (this.resizerLeft.previousElementSibling != null) {
                     this.resizerCorrection += this.resizerStartWidths.get(this.resizerLeft) - 200
                     this.resizerLeft = this.resizerLeft.previousElementSibling.previousElementSibling
                 }
             } else if (this.resizerLeft != this.activeResizer.previousElementSibling && leftWidth > this.resizerStartWidths.get(this.resizerLeft)) {
-                this.resizerLeft.style.width = `${this.resizerStartWidths.get(this.resizerLeft)}px`
+                this.resizerLeft.splitWidth = `${this.resizerStartWidths.get(this.resizerLeft)}px`
                 this.resizerLeft = this.resizerLeft.nextElementSibling.nextElementSibling
                 this.resizerCorrection -= this.resizerStartWidths.get(this.resizerLeft) - 200
             } else {
-                this.resizerLeft.style.width = `${leftWidth}px`
+                this.resizerLeft.splitWidth = `${leftWidth}px`
             }
         }
         
         if (setRight) {
             if (rightWidth < 200) {
-                this.resizerRight.style.width = '200px'
+                this.resizerRight.splitWidth = '200px'
                 if (this.resizerRight.nextElementSibling != null) {
                     this.resizerCorrection += this.resizerStartWidths.get(this.resizerRight) - 200
                     this.resizerRight = this.resizerRight.nextElementSibling.nextElementSibling
                 }
             } else if (this.resizerRight != this.activeResizer.nextElementSibling && rightWidth > this.resizerStartWidths.get(this.resizerRight)) {
-                this.resizerRight.style.width = `${this.resizerStartWidths.get(this.resizerRight)}px`
+                this.resizerRight.splitWidth = `${this.resizerStartWidths.get(this.resizerRight)}px`
                 this.resizerRight = this.resizerRight.previousElementSibling.previousElementSibling
                 this.resizerCorrection -= this.resizerStartWidths.get(this.resizerRight) - 200
             } else {
-                this.resizerRight.style.width = `${rightWidth}px`
+                this.resizerRight.splitWidth = `${rightWidth}px`
             }
         }
 
